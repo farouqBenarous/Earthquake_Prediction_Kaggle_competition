@@ -44,8 +44,10 @@ if __name__ == "__main__":
     plot_acc_ttf_data(Acousticdata, timeFailuer, title="Acoustic data and time to failure: 1% sampled data")
 
     # -------------------------- Start buildin and training my model ----------------------
-    # Create graph
 
+    display_step = 10  # to split the display
+
+    # Create graph
     tf.reset_default_graph()
     sess = tf.Session()
     # make results reproducible
@@ -70,8 +72,10 @@ if __name__ == "__main__":
     # Declare the elastic net loss function
     elastic_param1 = tf.constant(1.)
     elastic_param2 = tf.constant(1.)
+
     l1_a_loss = tf.reduce_mean(tf.abs(A))
     l2_a_loss = tf.reduce_mean(tf.square(A))
+
     e1_term = tf.multiply(elastic_param1, l1_a_loss)
     e2_term = tf.multiply(elastic_param2, l2_a_loss)
 
@@ -84,19 +88,18 @@ if __name__ == "__main__":
 
     # Training loop
     loss_vec = []
-    for i in range(1000):
+    with sess:
+        for i in range(1000):
+            sess.run(optimizer, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
+            if (i) % display_step == 0:
+                temp_loss = sess.run(loss, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
+                loss_vec.append(temp_loss[0])
+                print("Training step:", '%04d' % (i), "cost=", temp_loss)
 
-        sess.run(optimizer, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
-        if (i + 1) % 250 == 0:
-            temp_loss = sess.run(loss, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
-            loss_vec.append(temp_loss[0])
-            print('Step #' + str(i + 1) + ' A = ' + str(sess.run(A)) + ' b = ' + str(sess.run(b)))
-            print('Loss = ' + str(temp_loss))
+        answer = tf.equal(tf.floor(model_output + 0.1), y_target)
+        accuracy = tf.reduce_mean(tf.cast(answer, "float32"))
+        print(accuracy.eval(feed_dict={x_data: Acousticdata, y_target: timeFailuer}, session=sess))
 
-    answer = tf.equal(tf.floor(model_output), y_target)
-    print(answer)
-    accuracy = tf.reduce_mean(tf.cast(answer, "float32"))
-    print(accuracy)
-    print("Accuracy: ", accuracy.eval({x_data: Acousticdata, y_target: timeFailuer}, session=sess) * 100, "%")
-
-
+        answer = sess.run(model_output, feed_dict={x_data:12})
+        print( answer)
+    # loss = tf.expand_dims(tf.add(tf.add(tf.reduce_mean(tf.square(y_target - model_output)), e1_term), e2_term), 0)
