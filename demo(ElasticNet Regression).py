@@ -7,6 +7,9 @@ import pandas as pd
 
 
 # function for plotting based on both features
+from tensorflow.python.training import saver
+
+
 def plot_acc_ttf_data(Acousticdata, timeFailuer,
                       title="Acoustic data and time to failure: 1% sampled data"):
     fig, ax1 = plt.subplots(figsize=(12, 8))
@@ -86,6 +89,8 @@ if __name__ == "__main__":
     # Initialize variabls and tensorflow session
     sess.run(tf.global_variables_initializer())
 
+    sess = tf.Session(config=tf.ConfigProto(
+        allow_soft_placement=True, log_device_placement=True))
     # Training loop
     loss_vec = []
     with sess:
@@ -102,4 +107,6 @@ if __name__ == "__main__":
 
         answer = sess.run(model_output, feed_dict={x_data:12})
         print( answer)
+        save_path = saver.save(sess, "/home/benarousfarouk/Desktop/IA/Competitions/Earthquake Prediction("
+                                     "Kaggle)/models/model.ckpt")
     # loss = tf.expand_dims(tf.add(tf.add(tf.reduce_mean(tf.square(y_target - model_output)), e1_term), e2_term), 0)
