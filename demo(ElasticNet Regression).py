@@ -105,7 +105,7 @@ if __name__ == "__main__":
         accuracy = tf.reduce_mean(tf.cast(answer, "float32"))
         print(accuracy.eval(feed_dict={x_data: Acousticdata, y_target: timeFailuer}, session=sess))
 
-        answer = sess.run(model_output, feed_dict={x_data:12})
+        #answer = sess.run(model_output, feed_dict={x_data:12})
         print( answer)
         save_path = saver.save(sess, "/home/benarousfarouk/Desktop/IA/Competitions/Earthquake Prediction("
                                      "Kaggle)/models/model.ckpt")
