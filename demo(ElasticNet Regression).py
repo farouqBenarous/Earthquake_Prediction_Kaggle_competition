@@ -5,7 +5,6 @@ from sklearn import datasets
 from tensorflow.python.framework import ops
 import pandas as pd
 
-
 # function for plotting based on both features
 from tensorflow.python.training import saver
 
@@ -33,18 +32,20 @@ def plot_acc_ttf_data(Acousticdata, timeFailuer,
 if __name__ == "__main__":
     # ---------------------------- Bringing the data--------------------------------------
     pd.set_option("display.precision", 13)
-    data = pd.read_csv("Data/train.csv", nrows=5000,
+    data = pd.read_csv("Data/train.csv",
                        dtype={'acoustic_data': np.int16, 'time_to_failure': np.float64}, float_precision="hight")
+
+    print(data.shape[0], data.shape[1])
 
     # Acousticdata = data.loc[:, ["acoustic_data"]].values
     Acousticdata = list(x for x in data["acoustic_data"])
-    Acousticdata = np.array(Acousticdata).reshape(5000, 1)
+    Acousticdata = np.array(Acousticdata).reshape(629145480, 1)
     # timeFailuer = data.loc[:, ["time_to_failure"]].values
     timeFailuer = list(x for x in data["time_to_failure"])
-    timeFailuer = np.array(timeFailuer).reshape(5000, 1)
+    timeFailuer = np.array(timeFailuer).reshape(629145480, 1)
 
     print(Acousticdata)
-    plot_acc_ttf_data(Acousticdata, timeFailuer, title="Acoustic data and time to failure: 1% sampled data")
+    # plot_acc_ttf_data(Acousticdata, timeFailuer, title="Acoustic data and time to failure: 1% sampled data")
 
     # -------------------------- Start buildin and training my model ----------------------
 
@@ -53,6 +54,10 @@ if __name__ == "__main__":
     # Create graph
     tf.reset_default_graph()
     sess = tf.Session()
+
+    sess = tf.Session(config=tf.ConfigProto(
+        allow_soft_placement=True, log_device_placement=True))
+
     # make results reproducible
     seed = 13
     np.random.seed(seed)
@@ -62,8 +67,8 @@ if __name__ == "__main__":
     batch_size = 50
 
     # Initialize placeholders
-    x_data = tf.placeholder(shape=(5000, None), dtype=tf.float32)
-    y_target = tf.placeholder(shape=(5000, None), dtype=tf.float32)
+    x_data = tf.placeholder(shape=(629145480, None), dtype=tf.float32)
+    y_target = tf.placeholder(shape=(629145480, None), dtype=tf.float32)
 
     # Create variables for linear regression
     A = tf.Variable(tf.random_normal(shape=[1, 1]))
@@ -89,24 +94,23 @@ if __name__ == "__main__":
     # Initialize variabls and tensorflow session
     sess.run(tf.global_variables_initializer())
 
-    sess = tf.Session(config=tf.ConfigProto(
-        allow_soft_placement=True, log_device_placement=True))
+    saver = tf.train.Saver()
     # Training loop
     loss_vec = []
     with sess:
-        for i in range(1000):
+        for i in range(100):
             sess.run(optimizer, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
             if (i) % display_step == 0:
                 temp_loss = sess.run(loss, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
                 loss_vec.append(temp_loss[0])
                 print("Training step:", '%04d' % (i), "cost=", temp_loss)
+                save_path = saver.save(sess, "D:\Earthquake_Prediction_Kaggle_competition/models/model.ckpt")
 
-        answer = tf.equal(tf.floor(model_output + 0.1), y_target)
-        accuracy = tf.reduce_mean(tf.cast(answer, "float32"))
-        print(accuracy.eval(feed_dict={x_data: Acousticdata, y_target: timeFailuer}, session=sess))
+        # answer = tf.equal(tf.floor(model_output + 0.1), y_target)
+        # accuracy = tf.reduce_mean(tf.cast(answer, "float32"))
+        # print(accuracy.eval(feed_dict={x_data: Acousticdata, y_target: timeFailuer}, session=sess))
 
-        #answer = sess.run(model_output, feed_dict={x_data:12})
-        print( answer)
-        save_path = saver.save(sess, "/home/benarousfarouk/Desktop/IA/Competitions/Earthquake Prediction("
-                                     "Kaggle)/models/model.ckpt")
+        # answer = sess.run(model_output, feed_dict={x_data:12})
+        # print( answer)»:_;
+
     # loss = tf.expand_dims(tf.add(tf.add(tf.reduce_mean(tf.square(y_target - model_output)), e1_term), e2_term), 0)
