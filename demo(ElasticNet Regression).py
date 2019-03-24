@@ -56,7 +56,7 @@ if __name__ == "__main__":
     sess = tf.Session()
 
     sess = tf.Session(config=tf.ConfigProto(
-        allow_soft_placement=True, log_device_placement=True))
+       allow_soft_placement=True, log_device_placement=True))
 
     # make results reproducible
     seed = 13
@@ -98,7 +98,11 @@ if __name__ == "__main__":
     # Training loop
     loss_vec = []
     with sess:
-        for i in range(100):
+        # first day  : 100 itarition 94 coast  second
+        # second day : 300 itiration 36.785976
+        # third day  : 100 itiration 35.930317
+        for i in range(700):
+            saver.restore(sess, "D:\Earthquake_Prediction_Kaggle_competition/models/model.ckpt")
             sess.run(optimizer, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
             if (i) % display_step == 0:
                 temp_loss = sess.run(loss, feed_dict={x_data: Acousticdata, y_target: timeFailuer})
